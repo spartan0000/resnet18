@@ -8,7 +8,7 @@ import torchvision
 from torchvision import datasets
 from torchvision.transforms import v2
 
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, Subset
 from PIL import Image
 
 from datasets import load_dataset
@@ -145,7 +145,15 @@ class Cifar10Dataset(Dataset):
 
         return image, label
 
-def build_dataloaders(input_dir, batch_size = 32):
+def build_dataloaders(input_dir, subset_size, batch_size = 32):
+    """
+    input_dir: directory where the images and labels are stored
+    subset_size: size of the subset to be used for training and testing if necessary
+    batch_size: batch size for dataloaders
+    """
+
+    #if the subset is not necessary, will take this out later
+    
     train_filenames, train_labels = get_filenames_labels(input_dir, 'train')
     test_filenames, test_labels = get_filenames_labels(input_dir, 'test')
 
@@ -158,7 +166,13 @@ def build_dataloaders(input_dir, batch_size = 32):
     train_dataset = Cifar10Dataset(input_dir, train_filenames, train_labels, transform = transform)
     test_dataset = Cifar10Dataset(input_dir, test_filenames, test_labels, transform = transform)
 
+    train_subset = Subset(train_dataset, range(subset_size))
+    test_subset = Subset(test_dataset, range(subset_size))
+
     train_dataloader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True)
     test_dataloader = DataLoader(test_dataset, batch_size = batch_size)
 
-    return train_dataloader, test_dataloader
+    train_subsetloader = DataLoader(train_subset, batch_size = batch_size, shuffle = True)
+    test_subsetloader = DataLoader(test_subset, batch_size = batch_size)
+
+    return train_dataloader, test_dataloader, train_subsetloader, test_subsetloader
