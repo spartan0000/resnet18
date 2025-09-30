@@ -18,10 +18,12 @@ from PIL import Image
 
 #model adjusted for small size of cifar10 images (32x32)
 class Block(nn.Module): 
+    expansion = 1
+
     def __init__(self, in_channels: int, out_channels: int, stride: int = 1, downsample = None):
         super().__init__()
 
-        expansion = 1
+        
 
         self.relu = nn.ReLU()
         self.downsample = downsample
@@ -55,7 +57,7 @@ class Block(nn.Module):
 class ResNet18(nn.Module):
     
     def __init__(self, block, layers: list, num_classes:int = 10):
-        super().__init()
+        super().__init__()
 
         self.in_channels = 64
 
@@ -68,7 +70,7 @@ class ResNet18(nn.Module):
         self.layer1 = self._make_layer(block, 64, layers[0], stride = 1)
         self.layer2 = self._make_layer(block, 128, layers[1], stride = 2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride = 2)
-        self.layer4 = self._make_layers(block, 512, layers[3], stride = 2)
+        self.layer4 = self._make_layer(block, 512, layers[3], stride = 2)
 
         self.avgpool = nn.AdaptiveAvgPool2d((1,1))
         self.fc = nn.Linear(512*block.expansion, num_classes)

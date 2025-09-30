@@ -97,7 +97,7 @@ def plot_samples(input_dir: str, image_set: str, n_samples: int = 9):
 
     imgs = [Image.open(os.path.join(input_dir, f'{image_set}_img_{n}.jpg')) for n in random_num_padded]
     img_labels = pd.read_csv(os.path.join(input_dir, f'{image_set}_labels.csv'))
-    labels = [img_labels['label'[n] for n in random_idx]]
+    labels = [img_labels['label'][n] for n in random_idx]
 
     fig, axes = plt.subplots(3,3, figsize = (8,8))
 
@@ -119,7 +119,7 @@ def get_filenames_labels(input_dir, dataset):
     """
     filenames = [f for f in os.scandir(input_dir) if f.name.endswith('.jpg') and f.name.startswith(f'{dataset}')]
     labels_df = pd.read_csv(os.path.join(input_dir, f'{dataset}_labels.csv'))
-    labels = labels_df['labels'].tolist()
+    labels = labels_df['label'].tolist()
 
     return filenames, labels
 
