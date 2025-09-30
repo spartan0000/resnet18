@@ -38,6 +38,11 @@ label_to_idx = {label:idx for idx, label in idx_to_label.items()}
 
 
 def get_datasets(output_dir: str, dataset_name: str):
+    #uses huggingface datsets library to download cifar10 dataset
+    """
+    output_dir: directory where the images and labels will be saved
+    dataset_name: name of the dataset to be downloaded from huggingface datasets library
+    """
     dataset = load_dataset(dataset_name, cache_dir = output_dir)
     train_dataset = dataset['train']
     test_dataset = dataset['test']
@@ -107,3 +112,53 @@ def plot_samples(input_dir: str, image_set: str, n_samples: int = 9):
     plt.show()
 
 
+def get_filenames_labels(input_dir, dataset):
+    """
+    input_dir: directory where the images are stored
+    dataset: 'train' or 'test'
+    """
+    filenames = [f for f in os.scandir(input_dir) if f.name.endswith('.jpg') and f.name.startswith(f'{dataset}')]
+    labels_df = pd.read_csv(os.path.join(input_dir, f'{dataset}_labels.csv'))
+    labels = labels_df['labels'].tolist()
+
+    return filenames, labels
+
+
+class Cifar10Dataset(Dataset):
+    def __init__(self, input_dir, filenames, labels, transform = None):
+        self.input_dir = input_dir
+        self.filenames = filenames
+        self.labels = labels
+        self.transform = transform
+    
+    def __len__(self):
+        return len(self.filenames)
+
+    def __getitem__(self, idx):
+        filename = self.filenames[idx]
+        img_path = os.path.join(self.input_dir, filename)
+        image = Image.open(img_path).convert('RGB')
+        label = self.labels[idx]
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image, label
+
+def build_dataloaders(input_dir, batch_size = 32):
+    train_filenames, train_labels = get_filenames_labels(input_dir, 'train')
+    test_filenames, test_labels = get_filenames_labels(input_dir, 'test')
+
+    transform = v2.Compose([
+        v2.RandomHorizontalFlip(),
+        v2.ToImage(),
+        v2.ToDtype(torch.float32, scale = True),
+    ])
+
+    train_dataset = Cifar10Dataset(input_dir, train_filenames, train_labels, transform = transform)
+    test_dataset = Cifar10Dataset(input_dir, test_filenames, test_labels, transform = transform)
+
+    train_dataloader = DataLoader(train_dataset, batch_size = batch_size, shuffle = True)
+    test_dataloader = DataLoader(test_dataset, batch_size = batch_size)
+
+    return train_dataloader, test_dataloader
