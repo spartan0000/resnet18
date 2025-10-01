@@ -14,6 +14,8 @@ from torch.utils.data import Dataset, DataLoader, Subset
 from PIL import Image
 from timeit import default_timer as timer   
 
+
+
 #imports
 
 from preprocessing import get_datasets, preprocess_data, plot_samples, get_filenames_labels, build_dataloaders, Cifar10Dataset
@@ -49,14 +51,18 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
         model.train()
         train_loss = 0.0
         for i, (images,labels) in enumerate(train_dataloader):
+
             images, labels = images.to(device), labels.to(device)
-            outputs = model(images)
-            loss = loss_fn(outputs, labels)
+            with torch.autocast(device_type = device, enabled = amp):
+                outputs = model(images)
+                loss = loss_fn(outputs, labels)
+
             optimizer.zero_grad()
+            #torch.autograd.set_detect_anomaly(True)
+            scaler.scale(loss).backward()
 
-            loss.backward()
-
-            optimizer.step()
+            scaler.step(optimizer)
+            scaler.update()
             train_loss += loss.item() * images.size(0)
         train_loss /= len(train_dataloader.dataset)
 
@@ -73,15 +79,14 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
             test_loss /= len(test_dataloader.dataset)
             test_acc /= len(test_dataloader.dataset)
 
-            if i % 10 == 0:
-                print(f'Batch {i}: Train loss: {train_loss:.4f}| Test loss: {test_loss:.4f}| Test accuracy: {test_acc:.4f}')
-        #print(f'Epoch {epoch+1}/{epochs}: Train loss: {train_loss:.4f}| Test loss: {test_loss:.4f}| Test accuracy: {test_acc:.4f}')
+            
+        print(f'Epoch {epoch+1}/{epochs}: Train loss: {train_loss:.4f}| Test loss: {test_loss:.4f}| Test accuracy: {test_acc:.4f}')
     end = timer()
-    print(f'Total training time: {end - start:.2f} seconds')
+    print(f'Total training time on {device}: {end - start:.2f} seconds')
 
 
 def main():
-    train_dataloader, test_dataloader, train_subsetloader, test_subsetloader = build_dataloaders(INPUT_DIR, subset_size = 2000, batch_size = 32)
+    train_dataloader, test_dataloader, train_subsetloader, test_subsetloader = build_dataloaders(INPUT_DIR, subset_size = 10000, batch_size = 128)
     train(net, EPOCHS, train_subsetloader, test_subsetloader, loss_fn, optimizer, device)
 
 if __name__ == "__main__":
