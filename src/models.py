@@ -30,20 +30,20 @@ class Block(nn.Module):
 
 
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size = 3, stride = stride, padding = 1)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size = 3, stride = stride, padding = 1)
-        self.bn2 = nn.BatchNorm2d(out_channels)
+        self.batchnorm1 = nn.BatchNorm2d(out_channels)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size = 3, stride = 1, padding = 1)
+        self.batchnorm2 = nn.BatchNorm2d(out_channels)
 
     def forward(self, x):
         identity = x    
     
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
+        out = self.conv1(x)
+        out = self.batchnorm1(out)
+        out = self.relu(out)
 
-        x = self.conv2(x)
-        x = self.bn2(x)
-        x = self.relu(x)
+        out = self.conv2(out)
+        out = self.batchnorm2(out)
+        out = self.relu(out)
 
         if self.downsample is not None:
             identity = self.downsample(x)
@@ -62,7 +62,7 @@ class ResNet18(nn.Module):
         self.in_channels = 64
 
         #start the model with a modified layer for our small images
-        self.conv1 = nn.Conv2d(3, 64, kernel_size = 1, stride = 1, padding = 1)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size = 3, stride = 1, padding = 1)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU()
 
@@ -78,7 +78,7 @@ class ResNet18(nn.Module):
     def _make_layer(self, block, out_channels: int, blocks, stride: int):
         downsample = None
 
-        if stride != 1 or self.in_channels != out_channels:
+        if stride != 1 or self.in_channels != out_channels*block.expansion:
             downsample = nn.Sequential(
                 nn.Conv2d(self.in_channels, out_channels*block.expansion, kernel_size = 1, stride = stride),
                 nn.BatchNorm2d(out_channels*block.expansion)

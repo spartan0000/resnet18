@@ -12,7 +12,7 @@ from torchvision.transforms import v2
 
 from torch.utils.data import Dataset, DataLoader, Subset
 from PIL import Image
-
+from timeit import default_timer as timer   
 
 #imports
 
@@ -43,8 +43,8 @@ def accuracy(outputs, labels):
     return torch.sum(preds == labels).item() /len(labels)
 
 def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, device):
-    pass
-
+    model.to(device)
+    start = timer()
     for epoch in range(epochs):
         model.train()
         train_loss = 0.0
@@ -72,13 +72,17 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
                 test_acc += accuracy(test_outputs, labels) * images.size(0)
             test_loss /= len(test_dataloader.dataset)
             test_acc /= len(test_dataloader.dataset)
-        print(f'Epoch {epoch+1}/{epochs}: Train loss: {train_loss:.4f}| Test loss: {test_loss:.4f}| Test accuracy: {test_acc:.4f}')
 
+            if i % 10 == 0:
+                print(f'Batch {i}: Train loss: {train_loss:.4f}| Test loss: {test_loss:.4f}| Test accuracy: {test_acc:.4f}')
+        #print(f'Epoch {epoch+1}/{epochs}: Train loss: {train_loss:.4f}| Test loss: {test_loss:.4f}| Test accuracy: {test_acc:.4f}')
+    end = timer()
+    print(f'Total training time: {end - start:.2f} seconds')
 
 
 def main():
     train_dataloader, test_dataloader, train_subsetloader, test_subsetloader = build_dataloaders(INPUT_DIR, subset_size = 2000, batch_size = 32)
-
+    train(net, EPOCHS, train_subsetloader, test_subsetloader, loss_fn, optimizer, device)
 
 if __name__ == "__main__":
     main()
