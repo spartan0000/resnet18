@@ -26,24 +26,31 @@ from datetime import datetime
 from preprocessing import get_datasets, preprocess_data, plot_samples, get_filenames_labels, build_dataloaders, Cifar10Dataset
 from models import Block, ResNet18
 
-
+load_dotenv()
 INPUT_DIR = 'D:/cifar10_preprocessed'
+WANDB_API_KEY = os.environ.get('WANDB_API_KEY')
+
+wandb.login(key = WANDB_API_KEY)
+
 
 #hyperparameters
 EPOCHS = 5
 lr = 1e-3
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-amp = True 
+amp = True #automatic mixed precision for faster training on GPU with less memory usage
 batch_size = 128
 subset_size = 10000
+momentum = 0.9
+weight_decay = 5e-4
 
-experiment_date = datetime.now().strftime('%Y-%m-%d : %H-%M-%S')
+experiment_date = datetime.now().strftime('%Y-%m-%d : %H-%M-%S') #use as experiment name in experiment tracking
 
 config = {
     'learning rate': lr,
     'epochs': EPOCHS,
     'batch size' : batch_size,
-    'optimizer': 'Adam',
+    'optimizer': 'SGD',
+    'momentum': momentum,    
     'loss function': 'CrossEntropyLoss',
     'model': 'ResNet18',
     'dataset': 'CIFAR10',
@@ -60,13 +67,10 @@ def cifar10_resnet18(num_classes = 10):
     return ResNet18(Block, [2,2,2,2], num_classes = 10)
 
 net = cifar10_resnet18()
-optimizer = torch.optim.Adam(params = net.parameters(), lr = lr)
+optimizer = torch.optim.SGD(params = net.parameters(), lr = lr, momentum = momentum)
 loss_fn = nn.CrossEntropyLoss()
 scaler = torch.amp.GradScaler(device = device, enabled = amp)
 
-load_dotenv()
-WANDB_API_KEY = os.environ.get('WANDB_API_KEY')
-wandb.login(key = WANDB_API_KEY)
 
 
 
@@ -123,7 +127,7 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
             'train_loss': train_loss,
             'test loss': test_loss,
             'test accuracy': test_acc,
-            
+
         })
     end = timer()
     print(f'Total training time on {device}: {end - start:.2f} seconds')
