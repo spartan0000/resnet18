@@ -34,8 +34,8 @@ wandb.login(key = WANDB_API_KEY)
 
 
 #hyperparameters
-EPOCHS = 5
-lr = 1e-3
+EPOCHS = 20
+lr = 1e-1
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 amp = True #automatic mixed precision for faster training on GPU with less memory usage
 batch_size = 128
@@ -47,6 +47,7 @@ experiment_date = datetime.now().strftime('%Y-%m-%d : %H-%M-%S') #use as experim
 
 config = {
     'learning rate': lr,
+    'learning rate decay': 'yes',
     'epochs': EPOCHS,
     'batch size' : batch_size,
     'optimizer': 'SGD',
@@ -68,6 +69,7 @@ def cifar10_resnet18(num_classes = 10):
 
 net = cifar10_resnet18()
 optimizer = torch.optim.SGD(params = net.parameters(), lr = lr, momentum = momentum)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 10, gamma = 0.1) #decay learning rate by a factor of 10 every 10 epochs
 loss_fn = nn.CrossEntropyLoss()
 scaler = torch.amp.GradScaler(device = device, enabled = amp)
 
@@ -119,6 +121,7 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
             test_loss /= len(test_dataloader.dataset)
             test_acc /= len(test_dataloader.dataset)
 
+        scheduler.step()
             
         print(f'Epoch {epoch+1}/{epochs}: Train loss: {train_loss:.4f}| Test loss: {test_loss:.4f}| Test accuracy: {test_acc:.4f}')
 
