@@ -14,6 +14,11 @@ from torch.utils.data import Dataset, DataLoader, Subset
 from PIL import Image
 from timeit import default_timer as timer   
 
+import wandb #weights and biases for experiment tracking
+from dotenv import load_dotenv
+import os
+
+from datetime import datetime
 
 
 #imports
@@ -29,6 +34,26 @@ EPOCHS = 5
 lr = 1e-3
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 amp = True 
+batch_size = 128
+subset_size = 10000
+
+experiment_date = datetime.now().strftime('%Y-%m-%d : %H-%M-%S')
+
+config = {
+    'learning rate': lr,
+    'epochs': EPOCHS,
+    'batch size' : batch_size,
+    'optimizer': 'Adam',
+    'loss function': 'CrossEntropyLoss',
+    'model': 'ResNet18',
+    'dataset': 'CIFAR10',
+    'device': device,
+    'amp': amp,
+    'subset': 'yes',
+    'subset size': subset_size,
+
+
+}
 
 
 def cifar10_resnet18(num_classes = 10):
@@ -39,12 +64,23 @@ optimizer = torch.optim.Adam(params = net.parameters(), lr = lr)
 loss_fn = nn.CrossEntropyLoss()
 scaler = torch.amp.GradScaler(device = device, enabled = amp)
 
+load_dotenv()
+WANDB_API_KEY = os.environ.get('WANDB_API_KEY')
+wandb.login(key = WANDB_API_KEY)
+
+
+
 
 def accuracy(outputs, labels):
     preds = torch.argmax(outputs, dim = 1)
     return torch.sum(preds == labels).item() /len(labels)
 
 def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, device):
+    wandb.init(
+        project = 'ResNet18 on CIFAR10',
+        name = f'{experiment_date}',
+        config = config,
+    )
     model.to(device)
     start = timer()
     for epoch in range(epochs):
@@ -81,12 +117,21 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
 
             
         print(f'Epoch {epoch+1}/{epochs}: Train loss: {train_loss:.4f}| Test loss: {test_loss:.4f}| Test accuracy: {test_acc:.4f}')
+
+        wandb.log({
+            'epoch': epoch,
+            'train_loss': train_loss,
+            'test loss': test_loss,
+            'test accuracy': test_acc,
+            
+        })
     end = timer()
     print(f'Total training time on {device}: {end - start:.2f} seconds')
 
 
 def main():
-    train_dataloader, test_dataloader, train_subsetloader, test_subsetloader = build_dataloaders(INPUT_DIR, subset_size = 10000, batch_size = 128)
+    train_dataloader, test_dataloader, train_subsetloader, test_subsetloader = build_dataloaders(INPUT_DIR, subset_size = subset_size, batch_size = batch_size)
+    
     train(net, EPOCHS, train_subsetloader, test_subsetloader, loss_fn, optimizer, device)
 
 if __name__ == "__main__":
