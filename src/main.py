@@ -34,12 +34,12 @@ wandb.login(key = WANDB_API_KEY)
 
 
 #hyperparameters
-EPOCHS = 20
+EPOCHS = 30
 lr = 1e-1
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 amp = True #automatic mixed precision for faster training on GPU with less memory usage
 batch_size = 128
-subset_size = 10000
+subset_size = 25000
 momentum = 0.9
 weight_decay = 5e-4
 
@@ -57,8 +57,10 @@ config = {
     'dataset': 'CIFAR10',
     'device': device,
     'amp': amp,
-    'subset': 'yes',
-    'subset size': subset_size,
+    'subset': 'no',
+    'subset size': 'N/A',
+    'weight decay': weight_decay,
+    'dropout': '0.5'
 
 
 }
@@ -77,7 +79,7 @@ scaler = torch.amp.GradScaler(device = device, enabled = amp)
 
 
 
-def accuracy(outputs, labels):
+def accuracy(outputs, labels): #use inside training loop where 'outputs' are the the raw model outputs
     preds = torch.argmax(outputs, dim = 1)
     return torch.sum(preds == labels).item() /len(labels)
 
@@ -139,7 +141,7 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
 def main():
     train_dataloader, test_dataloader, train_subsetloader, test_subsetloader = build_dataloaders(INPUT_DIR, subset_size = subset_size, batch_size = batch_size)
     
-    train(net, EPOCHS, train_subsetloader, test_subsetloader, loss_fn, optimizer, device)
+    train(net, EPOCHS, train_dataloader, test_dataloader, loss_fn, optimizer, device)
 
 if __name__ == "__main__":
     main()

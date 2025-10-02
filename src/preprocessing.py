@@ -158,9 +158,11 @@ def build_dataloaders(input_dir, subset_size, batch_size = 32):
     test_filenames, test_labels = get_filenames_labels(input_dir, 'test')
 
     transform = v2.Compose([
+        v2.RandomCrop((32, 32), padding = 4),
         v2.RandomHorizontalFlip(),
         v2.ToImage(),
         v2.ToDtype(torch.float32, scale = True),
+        v2.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     ])
 
     train_dataset = Cifar10Dataset(input_dir, train_filenames, train_labels, transform = transform)

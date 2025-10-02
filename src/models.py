@@ -73,7 +73,10 @@ class ResNet18(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride = 2)
 
         self.avgpool = nn.AdaptiveAvgPool2d((1,1))
-        self.fc = nn.Linear(512*block.expansion, num_classes)
+        self.fc = nn.Sequential(
+            nn.Dropout(0.5),
+            nn.Linear(512*block.expansion, num_classes),
+        )
 
     def _make_layer(self, block, out_channels: int, blocks, stride: int):
         downsample = None
