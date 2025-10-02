@@ -162,7 +162,7 @@ def build_dataloaders(input_dir, subset_size, batch_size = 32):
         v2.RandomHorizontalFlip(),
         v2.ToImage(),
         v2.ToDtype(torch.float32, scale = True),
-        v2.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        v2.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)), #mean and std for RGB channels
     ])
 
     train_dataset = Cifar10Dataset(input_dir, train_filenames, train_labels, transform = transform)
