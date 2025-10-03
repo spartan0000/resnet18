@@ -52,7 +52,7 @@ config = {
     'batch size' : batch_size,
     'optimizer': 'SGD',
     'momentum': momentum,    
-    'loss function': 'CrossEntropyLoss',
+    'loss function': 'CrossEntropyLoss with label smoothing',
     'model': 'ResNet18',
     'dataset': 'CIFAR10',
     'device': device,
@@ -70,9 +70,9 @@ def cifar10_resnet18(num_classes = 10):
     return ResNet18(Block, [2,2,2,2], num_classes = 10)
 
 net = cifar10_resnet18()
-optimizer = torch.optim.SGD(params = net.parameters(), lr = lr, momentum = momentum)
+optimizer = torch.optim.SGD(params = net.parameters(), lr = lr, momentum = momentum, weight_decay= weight_decay)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 10, gamma = 0.1) #decay learning rate by a factor of 10 every 10 epochs
-loss_fn = nn.CrossEntropyLoss()
+loss_fn = nn.CrossEntropyLoss(label_smoothing = 0.1) #label smoothing to prevent overconfidence
 scaler = torch.amp.GradScaler(device = device, enabled = amp)
 
 
