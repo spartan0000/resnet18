@@ -32,6 +32,7 @@ WANDB_API_KEY = os.environ.get('WANDB_API_KEY')
 
 wandb.login(key = WANDB_API_KEY)
 
+PATH = 'D:/resnet18_cifar10.pth'
 
 #hyperparameters
 EPOCHS = 30
@@ -114,6 +115,7 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
         with torch.inference_mode():
             test_loss = 0.0
             test_acc = 0.0
+            best_test_acc = 0.0
             for i, (images, labels) in enumerate(test_dataloader):
                 images, labels = images.to(device), labels.to(device)
                 test_outputs = model(images)
@@ -122,7 +124,8 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
                 test_acc += accuracy(test_outputs, labels) * images.size(0)
             test_loss /= len(test_dataloader.dataset)
             test_acc /= len(test_dataloader.dataset)
-
+            if test_acc > best_test_acc:
+                best_test_acc = test_acc
         scheduler.step()
             
         print(f'Epoch {epoch+1}/{epochs}: Train loss: {train_loss:.4f}| Test loss: {test_loss:.4f}| Test accuracy: {test_acc:.4f}')
@@ -132,11 +135,15 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
             'train_loss': train_loss,
             'test loss': test_loss,
             'test accuracy': test_acc,
+            'best test accuracy': best_test_acc,
+
 
         })
-    end = timer()
-    print(f'Total training time on {device}: {end - start:.2f} seconds')
 
+    end = timer()
+
+    print(f'Total training time on {device}: {end - start:.2f} seconds')
+    torch.save(model.state_dict(), PATH)
 
 def main():
     train_dataloader, test_dataloader, train_subsetloader, test_subsetloader = build_dataloaders(INPUT_DIR, subset_size = subset_size, batch_size = batch_size)
