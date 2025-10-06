@@ -42,7 +42,7 @@ amp = True #automatic mixed precision for faster training on GPU with less memor
 batch_size = 128
 subset_size = 25000
 momentum = 0.9
-weight_decay = 5e-4
+weight_decay = 1e-3
 
 experiment_date = datetime.now().strftime('%Y-%m-%d : %H-%M-%S') #use as experiment name in experiment tracking
 
@@ -92,6 +92,7 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
     )
     model.to(device)
     start = timer()
+    best_test_acc = 0.0
     for epoch in range(epochs):
         model.train()
         train_loss = 0.0
@@ -115,7 +116,7 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
         with torch.inference_mode():
             test_loss = 0.0
             test_acc = 0.0
-            best_test_acc = 0.0
+            
             for i, (images, labels) in enumerate(test_dataloader):
                 images, labels = images.to(device), labels.to(device)
                 test_outputs = model(images)
