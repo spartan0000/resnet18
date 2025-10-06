@@ -81,7 +81,7 @@ def model_inference(model, transform):
         for i, ax in enumerate(axs.flat):
             image = images[i]
             ax.imshow(image)
-            ax.set_title({predictions[i].item()} == {labels[i]})
+            ax.set_title(f'{idx_to_label[labels[i]]} {predictions[i].item() == labels[i]}')
             ax.axis('off')
         plt.show()
 

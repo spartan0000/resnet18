@@ -140,11 +140,11 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
 
 
         })
-
+   
     end = timer()
 
     print(f'Total training time on {device}: {end - start:.2f} seconds')
-    torch.save(model.state_dict(), PATH)
+    #torch.save(model.state_dict(), PATH)
 
 def main():
     train_dataloader, test_dataloader, train_subsetloader, test_subsetloader = build_dataloaders(INPUT_DIR, subset_size = subset_size, batch_size = batch_size)
