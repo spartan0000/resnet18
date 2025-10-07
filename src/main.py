@@ -32,23 +32,24 @@ WANDB_API_KEY = os.environ.get('WANDB_API_KEY')
 
 wandb.login(key = WANDB_API_KEY)
 
-PATH = 'D:/resnet18_cifar10.pth'
+PATH = 'D:/resnet18_cifar10_2.pth'
 
 #hyperparameters
-EPOCHS = 30
-lr = 1e-1
+EPOCHS = 40
+lr = 5e-2
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 amp = True #automatic mixed precision for faster training on GPU with less memory usage
 batch_size = 128
 subset_size = 25000
 momentum = 0.9
 weight_decay = 1e-3
+label_smoothing = 0.1
 
 experiment_date = datetime.now().strftime('%Y-%m-%d : %H-%M-%S') #use as experiment name in experiment tracking
 
 config = {
     'learning rate': lr,
-    'learning rate decay': 'yes',
+    'learning rate decay': 'cosine annealing warm restarts',
     'epochs': EPOCHS,
     'batch size' : batch_size,
     'optimizer': 'SGD',
@@ -72,8 +73,8 @@ def cifar10_resnet18(num_classes = 10):
 
 net = cifar10_resnet18()
 optimizer = torch.optim.SGD(params = net.parameters(), lr = lr, momentum = momentum, weight_decay= weight_decay)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size = 10, gamma = 0.1) #decay learning rate by a factor of 10 every 10 epochs
-loss_fn = nn.CrossEntropyLoss(label_smoothing = 0.1) #label smoothing to prevent overconfidence
+scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=20) 
+loss_fn = nn.CrossEntropyLoss(label_smoothing = label_smoothing) #label smoothing to prevent overconfidence
 scaler = torch.amp.GradScaler(device = device, enabled = amp)
 
 
@@ -144,7 +145,7 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
     end = timer()
 
     print(f'Total training time on {device}: {end - start:.2f} seconds')
-    #torch.save(model.state_dict(), PATH)
+    torch.save(model.state_dict(), PATH)
 
 def main():
     train_dataloader, test_dataloader, train_subsetloader, test_subsetloader = build_dataloaders(INPUT_DIR, subset_size = subset_size, batch_size = batch_size)

@@ -12,3 +12,6 @@ wheels/
 *.env 
 
 .ipynb_checkpoints/
+wandb/
+*.pth 
+*.pt 
