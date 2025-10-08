@@ -1,5 +1,5 @@
 # Resnet 18 with the CIFAR-10 dataset
-![alt text](image.png)
+![](image.png)
 
 
 ## Slight modification due to small size of the images (32 x 32) - Initial layer has a 3x3 kernel instead of 7x7
