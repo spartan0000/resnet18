@@ -20,7 +20,7 @@ from PIL import Image
 class Block(nn.Module): 
     expansion = 1
 
-    def __init__(self, in_channels: int, out_channels: int, stride: int = 1, downsample = None):
+    def __init__(self, in_channels: int, out_channels: int, stride: int = 1, downsample = None, drop_prob: float = 0.0):
         super().__init__()
 
         
@@ -33,6 +33,7 @@ class Block(nn.Module):
         self.batchnorm1 = nn.BatchNorm2d(out_channels)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size = 3, stride = 1, padding = 1)
         self.batchnorm2 = nn.BatchNorm2d(out_channels)
+        self.drop_prob = drop_prob
 
     def forward(self, x):
         identity = x    
@@ -48,10 +49,14 @@ class Block(nn.Module):
         if self.downsample is not None:
             identity = self.downsample(x)
         
-        out = out + identity
-        out = self.relu(out)
+        if self.training and torch.rand(1).item() < self.drop_prob:
+            return identity
+        else:
+            out = out * (1 - self.drop_prob) #scale the output during training to account for dropped blocks
+            out = out + identity
+            out = self.relu(out)
 
-        return out
+            return out
 
 
 class ResNet18(nn.Module):
