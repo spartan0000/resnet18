@@ -49,10 +49,11 @@ class Block(nn.Module):
         if self.downsample is not None:
             identity = self.downsample(x)
         
-        if self.training and torch.rand(1).item() < self.drop_prob:
+        if self.training and torch.rand(1).item() < self.drop_prob: #stochastic depth - randomly drop blocks during training
             return identity
         else:
-            out = out * (1 - self.drop_prob) #scale the output during training to account for dropped blocks
+            if self.training:
+                out = out * (1 - self.drop_prob) #scale the output during training to account for dropped blocks
             out = out + identity
             out = self.relu(out)
 

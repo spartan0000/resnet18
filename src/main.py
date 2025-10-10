@@ -62,7 +62,8 @@ config = {
     'subset': 'no',
     'subset size': 'N/A',
     'weight decay': weight_decay,
-    'dropout': '0.5'
+    'dropout': '0.5',
+    'stochastic depth' : '0.2'
 
 
 }
