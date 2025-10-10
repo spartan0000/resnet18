@@ -35,8 +35,8 @@ wandb.login(key = WANDB_API_KEY)
 PATH = 'D:/resnet18_cifar10_2.pth'
 
 #hyperparameters
-EPOCHS = 40
-lr = 5e-2
+EPOCHS = 60
+lr = 1e-1
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 amp = True #automatic mixed precision for faster training on GPU with less memory usage
 batch_size = 128

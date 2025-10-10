@@ -112,7 +112,7 @@ def plot_samples(input_dir: str, image_set: str, n_samples: int = 9):
     plt.show()
 
 
-def get_filenames_labels(input_dir, dataset):
+def get_filenames_labels(input_dir: str, dataset: str):
     """
     input_dir: directory where the images are stored
     dataset: 'train' or 'test'
@@ -145,7 +145,7 @@ class Cifar10Dataset(Dataset):
 
         return image, label
 
-def build_dataloaders(input_dir, subset_size, batch_size = 32):
+def build_dataloaders(input_dir: str, subset_size: int, batch_size = 32):
     """
     input_dir: directory where the images and labels are stored
     subset_size: size of the subset to be used for training and testing if necessary
