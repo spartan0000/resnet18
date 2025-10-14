@@ -35,7 +35,7 @@ wandb.login(key = WANDB_API_KEY)
 PATH = 'D:/resnet18_cifar10_2.pth'
 
 #hyperparameters
-EPOCHS = 60
+EPOCHS = 70
 lr = 1e-1
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 amp = True #automatic mixed precision for faster training on GPU with less memory usage
@@ -63,7 +63,7 @@ config = {
     'subset size': 'N/A',
     'weight decay': weight_decay,
     'dropout': '0.5',
-    'stochastic depth' : '0.2'
+    'stochastic depth': 'no',
 
 
 }
@@ -74,7 +74,7 @@ def cifar10_resnet18(num_classes = 10):
 
 net = cifar10_resnet18()
 optimizer = torch.optim.SGD(params = net.parameters(), lr = lr, momentum = momentum, weight_decay= weight_decay)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=20) 
+scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2) 
 loss_fn = nn.CrossEntropyLoss(label_smoothing = label_smoothing) #label smoothing to prevent overconfidence
 scaler = torch.amp.GradScaler(device = device, enabled = amp)
 
