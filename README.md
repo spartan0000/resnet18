@@ -19,8 +19,10 @@
 - dropout - 0.5 just prior to the fully connected layer
 
 
+
+
 ### With this model I was able to get a test accuracy of 90.12%
 
-### Experimenting with stochastic depth to try and further improve performance
+### Experimenting with stochastic depth to try and further improve performance but Resnet 18 seems too shallow for this to work so will have to explore deeper Resnets
 
 ### Using Weight and Biases (wandb.ai) to track and log experiments - it's awesome!
