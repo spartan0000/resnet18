@@ -60,7 +60,7 @@ class Block(nn.Module):
             return out
 
 
-class ResNet18(nn.Module):
+class ResNet(nn.Module):
     
     def __init__(self, block, layers: list, num_classes:int = 10):
         super().__init__()

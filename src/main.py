@@ -24,7 +24,19 @@ from datetime import datetime
 #imports
 
 from preprocessing import get_datasets, preprocess_data, plot_samples, get_filenames_labels, build_dataloaders, Cifar10Dataset
-from models import Block, ResNet18
+from models import Block, ResNet
+
+
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--model', type = str, default = 'resnet18', choices = ['resnet18', 'resnet34'])
+args = parser.parse_args()
+
+
+
+
+
 
 load_dotenv()
 INPUT_DIR = 'D:/cifar10_preprocessed'
@@ -35,7 +47,7 @@ wandb.login(key = WANDB_API_KEY)
 PATH = 'D:/resnet18_cifar10_2.pth'
 
 #hyperparameters
-EPOCHS = 70
+EPOCHS = 10
 lr = 1e-1
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 amp = True #automatic mixed precision for faster training on GPU with less memory usage
@@ -70,9 +82,21 @@ config = {
 
 
 def cifar10_resnet18(num_classes = 10):
-    return ResNet18(Block, [2,2,2,2], num_classes = 10)
+    return ResNet(Block, [2,2,2,2], num_classes = 10)
 
-net = cifar10_resnet18()
+def cifar10_resnet34(num_classes = 10):
+    return ResNet(Block, [3,4,6,3], num_classes = 10)
+
+model_dict = {
+    'resnet18': cifar10_resnet18,
+    'resnet34': cifar10_resnet34,
+
+}
+
+net = model_dict[args.model](num_classes = 10)
+
+
+
 optimizer = torch.optim.SGD(params = net.parameters(), lr = lr, momentum = momentum, weight_decay= weight_decay)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2) 
 loss_fn = nn.CrossEntropyLoss(label_smoothing = label_smoothing) #label smoothing to prevent overconfidence
@@ -88,7 +112,7 @@ def accuracy(outputs, labels): #use inside training loop where 'outputs' are the
 
 def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, device):
     wandb.init(
-        project = 'ResNet18 on CIFAR10',
+        project = f'{args.model} on CIFAR10',
         name = f'{experiment_date}',
         config = config,
     )
@@ -146,7 +170,7 @@ def train(model, epochs, train_dataloader, test_dataloader, loss_fn, optimizer, 
     end = timer()
 
     print(f'Total training time on {device}: {end - start:.2f} seconds')
-    torch.save(model.state_dict(), PATH)
+    #torch.save(model.state_dict(), PATH)
 
 def main():
     train_dataloader, test_dataloader, train_subsetloader, test_subsetloader = build_dataloaders(INPUT_DIR, subset_size = subset_size, batch_size = batch_size)
