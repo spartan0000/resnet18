@@ -52,7 +52,6 @@ lr = 1e-1
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 amp = True #automatic mixed precision for faster training on GPU with less memory usage
 batch_size = 128
-subset_size = 25000
 momentum = 0.9
 weight_decay = 1e-3
 label_smoothing = 0.1
@@ -71,8 +70,6 @@ config = {
     'dataset': 'CIFAR10',
     'device': device,
     'amp': amp,
-    'subset': 'no',
-    'subset size': 'N/A',
     'weight decay': weight_decay,
     'dropout': '0.5',
     'stochastic depth': 'no',
