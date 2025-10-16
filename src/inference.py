@@ -22,7 +22,7 @@ import os
 
 from datetime import datetime
 
-from models import Block, ResNet18
+from models import Block, ResNet
 
 idx_to_label = {
     0: 'airplane',
@@ -41,7 +41,16 @@ label_to_idx = {label:idx for idx, label in idx_to_label.items()}
 
 input_dir = 'D:/cifar10_preprocessed'
 
-model = ResNet18(Block, [2,2,2,2])
+NUM_CLASSES = 10
+
+def cifar10_resnet18(num_classes = NUM_CLASSES):
+    return ResNet(Block, [2,2,2,2], num_classes = NUM_CLASSES)
+
+def cifar10_resnet34(num_classes = 10):
+    return ResNet(Block, [3,4,6,3], num_classes = NUM_CLASSES)
+
+
+model = cifar10_resnet34()
 
 transform = v2.Compose([
     v2.Resize((32,32)),
@@ -51,7 +60,7 @@ transform = v2.Compose([
 ])
 
 def model_inference(model, transform):
-    model.load_state_dict(torch.load('D:/resnet18_cifar10.pth'))
+    model.load_state_dict(torch.load('D:/resnet18_cifar10_2.pth'))
     model.eval()
 
     with torch.inference_mode():
@@ -69,7 +78,7 @@ def model_inference(model, transform):
         predictions = []
 
         for img in images:
-            transformed_img = transform(img).unsqueeze(0)
+            transformed_img = transform(img).unsqueeze(0) #add batch dimension
             output = model(transformed_img)
             probs = torch.softmax(output, dim = 1)
             preds = torch.argmax(probs, dim = 1)

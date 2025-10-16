@@ -20,7 +20,7 @@ from PIL import Image
 class Block(nn.Module): 
     expansion = 1
 
-    def __init__(self, in_channels: int, out_channels: int, stride: int = 1, downsample = None, drop_prob: float = 0.0):
+    def __init__(self, in_channels: int, out_channels: int, stride: int = 1, downsample = None, drop_prob: float = 0.2):
         super().__init__()
 
         
@@ -53,7 +53,7 @@ class Block(nn.Module):
             return identity
         else:
             if self.training:
-                out = out * (1 - self.drop_prob) #scale the output during training to account for dropped blocks
+                out = out / (1 - self.drop_prob) #scale the output during training to account for dropped blocks
             out = out + identity
             out = self.relu(out)
         
